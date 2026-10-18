@@ -92,4 +92,4 @@ the server restarts or is redeployed, which also ends any game in progress.
   is authoritative: it holds all state in memory and sends each phone only its own hand.
 - Client: React 19 with Motion for animation and canvas-confetti for celebrations.
 - Deployment: a Docker image built by Portainer from this Git repository, published on
-  `127.0.0.1:3000` for a cloudflared tunnel running on the host.
+  port 3000 on the LAN, which a Cloudflare tunnel points at.

@@ -49,9 +49,10 @@ or a dropped connection.
    `docker-compose.yml` (add a GitHub token under authentication, since the repository is private).
    Portainer builds the image on the host from the `Dockerfile`.
 2. Optionally set environment variables for the stack (see below).
-3. Deploy. The container listens on `127.0.0.1:3000` on the host only.
-4. In the Cloudflare dashboard, add a public hostname to the tunnel run by cloudflared on the host,
-   with service `http://localhost:3000`. WebSockets work through tunnels without extra settings.
+3. Deploy. The game is published on port 3000 on all of the host's interfaces, so it's reachable
+   on the LAN at `http://<server IP>:3000`.
+4. In the Cloudflare dashboard, add a public hostname to your tunnel with service
+   `http://<server IP>:3000`. WebSockets work through tunnels without extra settings.
 
 To ship an update, push to `main` and redeploy the stack in Portainer (or turn on its GitOps
 updates). Check on the first deploy that your Portainer version rebuilds the image from the
@@ -62,7 +63,7 @@ counts.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `UNO_PORT` | `3000` | Host port (on 127.0.0.1) the container is published on |
+| `UNO_PORT` | `3000` | Host port the container is published on |
 | `TURN_SECONDS` | `30` | Seconds per turn before a card is picked up automatically |
 | `MAX_AUTO_TURNS` | `5` | Automatic turns in a row before a player is removed |
 | `LOG_LEVEL` | `info` | Server log level (`warn`, `error`, `debug`, …) |
