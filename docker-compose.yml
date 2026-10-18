@@ -11,9 +11,10 @@ services:
     security_opt:
       - no-new-privileges:true
     ports:
-      # Only reachable from the host itself, where cloudflared runs: point the tunnel at
-      # http://localhost:3000 (or whatever UNO_PORT is set to).
-      - "127.0.0.1:${UNO_PORT:-3000}:3000"
+      # Published on all of the host's interfaces, so the game is reachable on the LAN at
+      # http://<server IP>:3000 (or whatever UNO_PORT is set to), which is where the
+      # Cloudflare tunnel points.
+      - "${UNO_PORT:-3000}:3000"
     environment:
       TURN_SECONDS: ${TURN_SECONDS:-30}
       MAX_AUTO_TURNS: ${MAX_AUTO_TURNS:-5}
