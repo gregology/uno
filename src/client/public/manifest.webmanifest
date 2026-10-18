@@ -1,0 +1,14 @@
+{
+  "name": "UNO!",
+  "short_name": "UNO!",
+  "description": "A fast, silly, single-table card game for up to 8 phones.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0726",
+  "theme_color": "#1b1150",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,20 @@
+# Portainer: Stacks → Add stack → Repository, pointing at this repo and this file.
+# Portainer builds the image on the host from the Dockerfile in the repo.
+services:
+  uno:
+    build: .
+    image: uno:latest
+    container_name: uno
+    restart: unless-stopped
+    init: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      # Only reachable from the host itself, where cloudflared runs: point the tunnel at
+      # http://localhost:3000 (or whatever UNO_PORT is set to).
+      - "127.0.0.1:${UNO_PORT:-3000}:3000"
+    environment:
+      TURN_SECONDS: ${TURN_SECONDS:-30}
+      MAX_AUTO_TURNS: ${MAX_AUTO_TURNS:-5}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
