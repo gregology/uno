@@ -1,4 +1,7 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { io as connect, type Socket } from 'socket.io-client';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Ack, TableView, UpdatePayload } from '../src/shared/protocol';
@@ -52,6 +55,33 @@ function player(n: number): Player {
   socket.on('connect', () => void p.send('hello', { token: `integration-token-${n}-xxxxxxxx` }));
   return p;
 }
+
+describe('static files', () => {
+  it('serves the page and assets, and 404s missing assets instead of sending the page', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'uno-client-'));
+    mkdirSync(join(dir, 'assets'));
+    writeFileSync(join(dir, 'index.html'), '<!doctype html><title>UNO!</title>');
+    const { app } = await createApp({ table: new Table(), clientDir: dir, logLevel: 'silent' });
+    try {
+      const page = await app.inject('/');
+      expect(page.headers['content-type']).toMatch(/text\/html/);
+      expect(page.headers['cache-control']).toBe('no-cache');
+
+      // Files that appear after startup (a rebuild) are served too.
+      writeFileSync(join(dir, 'assets', 'app-123.js'), 'console.log(1)');
+      const asset = await app.inject('/assets/app-123.js');
+      expect(asset.statusCode).toBe(200);
+      expect(asset.headers['content-type']).toMatch(/javascript/);
+      expect(asset.headers['cache-control']).toContain('immutable');
+
+      expect((await app.inject('/assets/gone-456.js')).statusCode).toBe(404);
+      expect((await app.inject('/somewhere')).body).toContain('<title>UNO!</title>');
+    } finally {
+      await app.close();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
 
 describe('server', () => {
   it('answers health checks', async () => {

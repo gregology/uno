@@ -22,7 +22,8 @@ export async function createApp({ table, clientDir, logLevel = 'info' }: AppOpti
   app: FastifyInstance;
   io: Server;
 }> {
-  const app = Fastify({ logger: { level: logLevel }, trustProxy: true });
+  // Request logging is off: health checks and socket polling would drown out everything else.
+  const app = Fastify({ logger: { level: logLevel }, disableRequestLogging: true, trustProxy: true });
 
   app.get('/healthz', async () => ({ ok: true, phase: table.phase }));
 
@@ -30,7 +31,6 @@ export async function createApp({ table, clientDir, logLevel = 'info' }: AppOpti
     const assetsDir = resolve(clientDir, 'assets');
     await app.register(fastifyStatic, {
       root: clientDir,
-      wildcard: false,
       cacheControl: false,
       setHeaders(reply, path) {
         // Vite fingerprints everything in /assets; the page itself must always be fresh.
@@ -40,7 +40,11 @@ export async function createApp({ table, clientDir, logLevel = 'info' }: AppOpti
         );
       },
     });
-    app.setNotFoundHandler((_request, reply) => reply.sendFile('index.html'));
+    app.setNotFoundHandler((request, reply) => {
+      // Missing files (say, assets from before a redeploy) get a real 404; anything else gets the game.
+      if (/\.[a-z0-9]+$/i.test(request.url.split('?')[0]!)) return reply.code(404).send({ error: 'Not found' });
+      return reply.sendFile('index.html');
+    });
   } else if (clientDir) {
     app.log.warn(`No client build in ${clientDir}; serving the game connection only`);
   }
