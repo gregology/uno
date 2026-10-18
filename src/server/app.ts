@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import fastifyStatic from '@fastify/static';
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify, { LogController, type FastifyInstance } from 'fastify';
 import { Server } from 'socket.io';
 import type { Ack, ClientMessages } from '../shared/protocol';
 import type { Table, TableClient } from './table';
@@ -23,7 +23,11 @@ export async function createApp({ table, clientDir, logLevel = 'info' }: AppOpti
   io: Server;
 }> {
   // Request logging is off: health checks and socket polling would drown out everything else.
-  const app = Fastify({ logger: { level: logLevel }, disableRequestLogging: true, trustProxy: true });
+  const app = Fastify({
+    logger: { level: logLevel },
+    logController: new LogController({ disableRequestLogging: true }),
+    trustProxy: true,
+  });
 
   app.get('/healthz', async () => ({ ok: true, phase: table.phase }));
 
